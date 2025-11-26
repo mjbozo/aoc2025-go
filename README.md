@@ -16,152 +16,150 @@ Daybreaker package is used to build files for a new day because its more fun tha
 Take timings with a pinch of salt, I'm not doing any proper benchmarking
 
 ### Day 1
-Part 1: ⭐ (210.808µs)
+Part 1:
 
-Part 2: ⭐ (165.999µs)
+Part 2:
 
 
 ### Day 2
-Part 1: ⭐ (312.127µs)
+Part 1:
 
-Part 2: ⭐ (346.496µs)
+Part 2:
 
 
 ### Day 3
-Part 1: ⭐ (711.903µs)
+Part 1:
 
-Part 2: ⭐ (721.353µs)
+Part 2:
 
 
 ### Day 4
-Part 1: ⭐ (293.187µs)
+Part 1:
 
-Part 2: ⭐ (119.929µs)
+Part 2:
 
 
 ### Day 5
-Part 1: ⭐ (797.923µs)
+Part 1:
 
-Part 2: ⭐ (1.401447ms)
+Part 2:
 
 
 ### Day 6
-Part 1: ⭐ (894.261µs)
+Part 1:
 
-Part 2: ⭐ (118.925729ms)
+Part 2:
 
 
 ### Day 7
-Part 1: ⭐ (5.906701ms)
+Part 1:
 
-Part 2: ⭐ (170.02165ms)
+Part 2:
 
 
 ### Day 8
-Part 1: ⭐ (74.7290µs) 
+Part 1:
 
-Part 2: ⭐ (205.418µs)
+Part 2:
 
 
 ### Day 9
-Part 1: ⭐ (531.515µs)
+Part 1:
 
-Part 2: ⭐ (29.970398ms)
+Part 2:
 
 
 ### Day 10
-Part 1: ⭐ (528.248µs)
+Part 1:
 
-Part 2: ⭐ (489.858µs)
+Part 2:
 
 
 ### Day 11
-Part 1: ⭐ (1.977182ms)
+Part 1:
 
-Part 2: ⭐ (29.417847ms)
+Part 2:
 
 
 ### Day 12
-Part 1: ⭐ (11.760786ms)
+Part 1: ⭐ 
 
-Part 2: ⭐ (13.225544ms)
+Part 2: ⭐ 
 
 
 ### Day 13
-Part 1: ⭐ (206.409µs)
+Part 1:
 
-Part 2: ⭐ (182.299µs)
+Part 2:
 
 
 ### Day 14
-Part 1: ⭐ (338.408µs)
+Part 1:
 
-Part 2: ⭐ (2.031256902s)
-
-Part 2 (alt approach): ⭐ (399.327373ms)
+Part 2:
 
 
 ### Day 15
-Part 1: ⭐ (395.238µs)
+Part 1:
 
-Part 2: ⭐ (2.377961ms)
+Part 2:
 
 
 ### Day 16
-Part 1: ⭐ (14.928874ms)
+Part 1:
 
-Part 2: ⭐ (15.232649ms)
+Part 2:
 
 
 ### Day 17
-Part 1: ⭐ (16.02µs)
+Part 1:
 
-Part 2: ⭐ (251.998µs)
+Part 2:
 
 
 ### Day 18
-Part 1: ⭐ (1.904416ms)
+Part 1:
 
-Part 2: ⭐ (7.202885ms)
+Part 2:
 
 
 ### Day 19
-Part 1: ⭐ (2.398968ms)
+Part 1:
 
-Part 2: ⭐ (5.870412ms)
+Part 2:
 
 
 ### Day 20
-Part 1: ⭐ (6.943424ms)
+Part 1:
 
-Part 2: ⭐ (76.24764ms)
+Part 2:
 
 
 ### Day 21
-Part 1: ⭐ (69.139µs)
+Part 1:
 
-Part 2: ⭐ (1.623848ms)
+Part 2:
 
 
 ### Day 22
-Part 1: ⭐ (30.922861ms)
+Part 1:
 
-Part 2: ⭐ (1.698859853s)
+Part 2:
 
 
 ### Day 23
-Part 1: ⭐ (1.767547ms)
+Part 1:
 
-Part 2: ⭐ (468.133654ms)
+Part 2:
 
 
 ### Day 24
-Part 1: ⭐ (201.498µs)
+Part 1:
 
-Part 2: ⭐ (137.199µs)
+Part 2:
 
 
 ### Day 25
-Part 1: ⭐ (858.814µs)
+Part 1:
 
-Part 2: ⭐ (110ns)
+Part 2:
