@@ -1,5 +1,5 @@
-# Advent of Code 2024
-Collection of solutions for [Advent of Code 2024](https://adventofcode.com/) written in Go
+# Advent of Code 2025
+Collection of solutions for [Advent of Code 2025](https://adventofcode.com/) written in Go
 
 > Run a specific day with
 >
