@@ -53,9 +53,8 @@ func part2(input []string) int {
 
 	for _, rotation := range input {
 		amount, _ := strconv.Atoi(rotation[1:])
-		rotations := amount / 100
 		remaining := amount % 100
-		zeros += rotations
+		zeros += amount / 100
 
 		if rotation[0] == 'L' {
 			if (current != 0 && current-remaining < 0) || current-remaining == 0 {
