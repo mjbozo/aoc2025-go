@@ -11,6 +11,14 @@ import (
 	"strings"
 )
 
+type ResponseError struct {
+	msg string
+}
+
+func (e *ResponseError) Error() string {
+	return e.msg
+}
+
 // Interface for all number types, useful for generics
 type Number interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
@@ -83,6 +91,12 @@ func RequestProblemData(day int) (string, error) {
 	res, err := client.Do(req)
 	if err != nil {
 		return "", err
+	}
+
+	if res.StatusCode != 200 {
+		body := make([]byte, 1024)
+		res.Body.Read(body)
+		return "", &ResponseError{msg: fmt.Sprintf("Request failed with status %d\nMessage: %s", res.StatusCode, string(body))}
 	}
 
 	bytes, err := io.ReadAll(res.Body)

@@ -1,5 +1,5 @@
 # Advent of Code 2025
-Collection of solutions for [Advent of Code 2025](https://adventofcode.com/) written in Go
+Collection of solutions for [Advent of Code 2025](https://adventofcode.com/2025) written in Go
 
 > Run a specific day with
 >
@@ -16,9 +16,9 @@ Daybreaker package is used to build files for a new day because its more fun tha
 Take timings with a pinch of salt, I'm not doing any proper benchmarking
 
 ### Day 1
-Part 1:
+Part 1: ⭐ (63.909µs)
 
-Part 2:
+Part 2: ⭐ (81.552µs)
 
 
 ### Day 2
