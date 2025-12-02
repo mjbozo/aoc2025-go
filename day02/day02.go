@@ -99,7 +99,7 @@ func findInvalidIdsAgain(r string, c chan int, q chan int) {
 		str := fmt.Sprintf("%d", i)
 		l := len(str)
 
-		for x := 1; x < l; x++ {
+		for x := 1; x <= l/2; x++ {
 			pattern := str[:x]
 			if l%len(pattern) != 0 {
 				continue
