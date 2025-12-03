@@ -32,10 +32,10 @@ func part1(input []string) int {
 	return sum
 }
 
-func part2(input []string) int64 {
-	var sum int64
+func part2(input []string) int {
+	sum := 0
 	for _, line := range input {
-		sum += int64(maximiseBatteries(line, 12))
+		sum += maximiseBatteries(line, 12)
 	}
 	return sum
 }
