@@ -4,7 +4,7 @@ import (
 	"aoc2025/day01"
 	"aoc2025/day02"
 	"aoc2025/day03"
-	// "aoc2025/day04"
+	"aoc2025/day04"
 	// "aoc2025/day05"
 	// "aoc2025/day06"
 	// "aoc2025/day07"
@@ -61,8 +61,8 @@ func main() {
 		day02.Run()
 	case "day03":
 		day03.Run()
-	// case "day04":
-	// 	day04.Run()
+	case "day04":
+		day04.Run()
 	// case "day05":
 	// 	day05.Run()
 	// case "day06":
@@ -91,8 +91,8 @@ func runAll() {
 	day02.Run()
 	fmt.Println("\nDAY 03")
 	day03.Run()
-	// fmt.Println("\nDAY 04")
-	// day04.Run()
+	fmt.Println("\nDAY 04")
+	day04.Run()
 	// fmt.Println("\nDAY 05")
 	// day05.Run()
 	// fmt.Println("\nDAY 06")
