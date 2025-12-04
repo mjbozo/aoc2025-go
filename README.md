@@ -34,9 +34,9 @@ Part 2: ⭐ (1.231ms)
 
 
 ### Day 4
-Part 1:
+Part 1: ⭐ (55.511µs)
 
-Part 2:
+Part 2: ⭐ (3.895ms)
 
 
 ### Day 5
