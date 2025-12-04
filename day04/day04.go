@@ -36,18 +36,20 @@ func part1(input []string) int {
 			}
 
 			adjacent := 0
-			for dy := -1; dy <= 1; dy++ {
-				for dx := -1; dx <= 1; dx++ {
-					currentY := y + dy
-					currentX := x + dx
+			deltas := []utils.Pair[int, int]{
+				{First: -1, Second: -1}, {First: -1, Second: 0}, {First: -1, Second: 1}, {First: 0, Second: -1},
+				{First: 0, Second: 1}, {First: 1, Second: -1}, {First: 1, Second: 0}, {First: 1, Second: 1},
+			}
 
-					if dy == 0 && dx == 0 {
-						continue
-					}
+			for _, delta := range deltas {
+				dx, dy := delta.First, delta.Second
+				if dy == 0 && dx == 0 {
+					continue
+				}
 
-					if currentX >= 0 && currentX < width && currentY >= 0 && currentY < height && input[currentY][currentX] == '@' {
-						adjacent++
-					}
+				currentX, currentY := x+dx, y+dy
+				if currentX >= 0 && currentX < width && currentY >= 0 && currentY < height && input[currentY][currentX] == '@' {
+					adjacent++
 				}
 			}
 
@@ -60,53 +62,67 @@ func part1(input []string) int {
 	return accessible
 }
 
-func part2(input []string) int {
-	width := len(input[0])
-	height := len(input)
-	totalRemoved := 0
+type Cell struct {
+	accessibiltyScore  int
+	neighbourPositions []utils.Pair[int, int]
+}
 
-	for {
-		accessible := make([]utils.Pair[int, int], 0)
-		for y := range height {
-			for x := range width {
-				if input[y][x] != '@' {
-					continue
+func (c *Cell) String() string {
+	return fmt.Sprintf("[%d]", c.accessibiltyScore)
+}
+
+func part2(input []string) int {
+	width, height := len(input[0]), len(input)
+	purgeList := make(chan *Cell, width*height)
+
+	cells := utils.BuildGrid(input, func(i int, line string) []*Cell {
+		row := make([]*Cell, 0)
+		for j, c := range line {
+			if c == '.' {
+				row = append(row, nil)
+			} else {
+				cell := &Cell{neighbourPositions: make([]utils.Pair[int, int], 0)}
+				deltas := []utils.Pair[int, int]{
+					{First: -1, Second: -1}, {First: -1, Second: 0}, {First: -1, Second: 1}, {First: 0, Second: -1},
+					{First: 0, Second: 1}, {First: 1, Second: -1}, {First: 1, Second: 0}, {First: 1, Second: 1},
 				}
 
-				adjacent := 0
-				for dy := -1; dy <= 1; dy++ {
-					for dx := -1; dx <= 1; dx++ {
-						currentY := y + dy
-						currentX := x + dx
+				for _, delta := range deltas {
+					dx, dy := delta.First, delta.Second
+					if dy == 0 && dx == 0 {
+						continue
+					}
 
-						if dy == 0 && dx == 0 {
-							continue
-						}
-
-						if currentX >= 0 && currentX < width && currentY >= 0 && currentY < height && input[currentY][currentX] == '@' {
-							adjacent++
-						}
+					currentX, currentY := j+dx, i+dy
+					if currentX >= 0 && currentX < width && currentY >= 0 && currentY < height && input[currentY][currentX] == '@' {
+						cell.accessibiltyScore++
+						cell.neighbourPositions = append(cell.neighbourPositions, utils.Pair[int, int]{First: currentX, Second: currentY})
 					}
 				}
 
-				if adjacent < 4 {
-					accessible = append(accessible, utils.Pair[int, int]{First: x, Second: y})
+				row = append(row, cell)
+				if cell.accessibiltyScore < 4 {
+					purgeList <- cell
 				}
 			}
 		}
 
-		if len(accessible) == 0 {
-			break
-		}
+		return row
+	})
 
-		totalRemoved += len(accessible)
-		for _, pos := range accessible {
-			prefix := input[pos.Second][:pos.First]
-			suffix := input[pos.Second][pos.First+1:]
-			input[pos.Second] = prefix + "." + suffix
+	purged := 0
+	for len(purgeList) > 0 {
+		purged++
+		x := <-purgeList
+
+		for _, pos := range x.neighbourPositions {
+			(*cells)[pos.Second][pos.First].accessibiltyScore--
+			if (*cells)[pos.Second][pos.First].accessibiltyScore == 3 {
+				// just dropped below 4 - add to purge list
+				purgeList <- (*cells)[pos.Second][pos.First]
+			}
 		}
 	}
 
-	return totalRemoved
+	return purged
 }
-
