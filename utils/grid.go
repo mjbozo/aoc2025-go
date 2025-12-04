@@ -9,15 +9,14 @@ import (
 type Grid[T any] [][]T
 
 // Constructor for grid struct
-func BuildGrid[T, U any](inputLines []U, mapper func(v U) []T) *Grid[T] {
+func BuildGrid[T, U any](inputLines []U, mapper func(i int, v U) []T) *Grid[T] {
 	grid := Grid[T]{}
 
-	for _, row := range inputLines {
-		mappedElements := mapper(row)
+	for i, row := range inputLines {
+		mappedElements := mapper(i, row)
 		grid = append(grid, mappedElements)
 	}
 
-	fmt.Println(grid)
 	return &grid
 }
 

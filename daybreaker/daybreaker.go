@@ -44,37 +44,37 @@ func Create(days []string) error {
 		// create `dayX.go`, `dayX_test.go`, and `dayX_example.txt` files in new directory
 		err = os.WriteFile(fmt.Sprintf("%s/%s.go", day, day), fmt.Appendf(nil, `package %s
 
-	import (
-		"aoc2025/utils"
-		"fmt"
-		"log"
-		"time"
-	)
+import (
+	"aoc2025/utils"
+	"fmt"
+	"log"
+	"time"
+)
 
-	func Run() {
-		input, err := utils.ReadInput("%s/input.txt", %s)
-		if err != nil {
-			log.Fatalln(utils.Red(err.Error()))
-		}
-
-		start := time.Now()
-		part1Result := part1(input)
-		elapsed := time.Since(start)
-		fmt.Printf("Part 1: %%d (%%v)\n", part1Result, elapsed)
-
-		start = time.Now()
-		part2Result := part2(input)
-		elapsed = time.Since(start)
-		fmt.Printf("Part 2: %%d (%%v)\n", part2Result, elapsed)
+func Run() {
+	input, err := utils.ReadInput("%s/input.txt", %s)
+	if err != nil {
+		log.Fatalln(utils.Red(err.Error()))
 	}
 
-	func part1(input string) int {
-		return 0
-	}
+	start := time.Now()
+	part1Result := part1(input)
+	elapsed := time.Since(start)
+	fmt.Printf("Part 1: %%d (%%v)\n", part1Result, elapsed)
 
-	func part2(input string) int {
-		return 0
-	}`, day, day, dayNum), 0660)
+	start = time.Now()
+	part2Result := part2(input)
+	elapsed = time.Since(start)
+	fmt.Printf("Part 2: %%d (%%v)\n", part2Result, elapsed)
+}
+
+func part1(input string) int {
+	return 0
+}
+
+func part2(input string) int {
+	return 0
+}`, day, day, dayNum), 0660)
 
 		if err != nil {
 			return err
@@ -82,37 +82,37 @@ func Create(days []string) error {
 
 		err = os.WriteFile(fmt.Sprintf("%s/%s_test.go", day, day), fmt.Appendf(nil, `package %s
 
-	import (
-		"aoc2025/utils"
-		"log"
-		"testing"
-	)
+import (
+	"aoc2025/utils"
+	"log"
+	"testing"
+)
 
-	func TestPart1(t *testing.T) {
-		input, err := utils.ReadInput("example.txt", %s)
-		if err != nil {
-			log.Fatalln(utils.Red(err.Error()))
-		}
-
-		expected := 0
-		result := part1(input)
-		if result != expected {
-			t.Fatalf(utils.Red("Expected %%d, got %%d\n"), expected, result)
-		}
+func TestPart1(t *testing.T) {
+	input, err := utils.ReadInput("example.txt", %s)
+	if err != nil {
+		log.Fatalln(utils.Red(err.Error()))
 	}
 
-	func TestPart2(t *testing.T) {
-		input, err := utils.ReadInput("example.txt", %s)
-		if err != nil {
-			log.Fatalln(utils.Red(err.Error()))
-		}
+	expected := 0
+	result := part1(input)
+	if result != expected {
+		t.Fatalf(utils.Red("Expected %%d, got %%d\n"), expected, result)
+	}
+}
 
-		expected := 0
-		result := part2(input)
-		if result != expected {
-			t.Fatalf(utils.Red("Expected %%d, got %%d\n"), expected, result)
-		}
-	}`, day, dayNum, dayNum), 0660)
+func TestPart2(t *testing.T) {
+	input, err := utils.ReadInput("example.txt", %s)
+	if err != nil {
+		log.Fatalln(utils.Red(err.Error()))
+	}
+
+	expected := 0
+	result := part2(input)
+	if result != expected {
+		t.Fatalf(utils.Red("Expected %%d, got %%d\n"), expected, result)
+	}
+}`, day, dayNum, dayNum), 0660)
 		if err != nil {
 			return err
 		}
