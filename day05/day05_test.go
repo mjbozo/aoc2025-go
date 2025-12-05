@@ -12,7 +12,7 @@ func TestPart1(t *testing.T) {
 		log.Fatalln(utils.Red(err.Error()))
 	}
 
-	expected := 0
+	expected := 3
 	result := part1(input)
 	if result != expected {
 		t.Fatalf(utils.Red("Expected %d, got %d\n"), expected, result)
@@ -25,7 +25,7 @@ func TestPart2(t *testing.T) {
 		log.Fatalln(utils.Red(err.Error()))
 	}
 
-	expected := 0
+	expected := 14
 	result := part2(input)
 	if result != expected {
 		t.Fatalf(utils.Red("Expected %d, got %d\n"), expected, result)
