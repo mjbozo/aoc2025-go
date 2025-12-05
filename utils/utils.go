@@ -175,7 +175,7 @@ func Manhattan[T, U Number](p1, p2 Pair[T, U]) int {
 	return int(math.Abs(float64(p2.Second-p1.Second)) + math.Abs(float64(p2.First-p1.First)))
 }
 
-// Calculate lowest common multilpe of two integers
+// Calculate lowest common multiple of two integers
 func FindLCM(x, y int) int {
 	largest := max(y, x)
 
