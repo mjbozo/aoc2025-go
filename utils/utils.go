@@ -56,20 +56,20 @@ func (t Triple[T, U, V]) String() string {
 }
 
 // Data structure for representing a range of integers
-type intRange struct {
+type IntRange struct {
 	First  int
 	Second int
 }
 
 // IntRange constructor, ensures First is always lower bound, and Second is always upper bound
-func IntRange(f, s int) intRange {
+func NewIntRange(f, s int) IntRange {
 	lower := f
 	upper := s
 	if f > s {
 		lower = s
 		upper = f
 	}
-	return intRange{First: lower, Second: upper}
+	return IntRange{First: lower, Second: upper}
 }
 
 // Send request to AOC to retrieve input data
@@ -193,7 +193,7 @@ func FindLCM(x, y int) int {
 }
 
 // Returns true if two integer ranges are overlapping
-func Overlaps(r1, r2 intRange) bool {
+func Overlaps(r1, r2 IntRange) bool {
 	return r1.First <= r2.Second && r2.First <= r1.Second
 }
 
