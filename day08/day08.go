@@ -28,28 +28,10 @@ func Run() {
 }
 
 type point utils.Triple[int, int, int]
+type distancePoints utils.Triple[int, int, int]
 
 func part1(input []string, iterations int) int {
-	points := make([]point, 0)
-
-	for _, line := range input {
-		coords := strings.Split(line, ",")
-		x, _ := strconv.Atoi(coords[0])
-		y, _ := strconv.Atoi(coords[1])
-		z, _ := strconv.Atoi(coords[2])
-		points = append(points, point{x, y, z})
-	}
-
-	distances := make([]utils.Triple[int, int, int], 0)
-	for i := 0; i < len(points)-1; i++ {
-		for j := i + 1; j < len(points); j++ {
-			distances = append(distances, utils.Triple[int, int, int]{First: sqrDistance(points[i], points[j]), Second: i, Third: j})
-		}
-	}
-
-	slices.SortFunc(distances, func(a, b utils.Triple[int, int, int]) int {
-		return a.First - b.First
-	})
+	_, distances := calculatePointsAndDistances(input)
 
 	// map of point index to graph number
 	graphLookup := make(map[int]int)
@@ -73,31 +55,18 @@ func part1(input []string, iterations int) int {
 			}
 
 			// merge second graph into first
-			secondNodes := revLookup[yVal]
-			existing := revLookup[xVal]
-			for _, v := range secondNodes {
-				graphLookup[v] = xVal
-				existing = append(existing, v)
-			}
-			revLookup[xVal] = existing
-			delete(revLookup, yVal)
+			mergeCircuits(xVal, yVal, graphLookup, revLookup)
 			continue
 		}
 
 		// if only one already exists in a graph, add other junction box
 		if xOk {
-			graphLookup[shortest.Third] = xVal
-			existing := revLookup[xVal]
-			existing = append(existing, shortest.Third)
-			revLookup[xVal] = existing
+			addBoxToCircuit(shortest.Third, xVal, graphLookup, revLookup)
 			continue
 		}
 
 		if yOk {
-			graphLookup[shortest.Second] = yVal
-			existing := revLookup[yVal]
-			existing = append(existing, shortest.Second)
-			revLookup[yVal] = existing
+			addBoxToCircuit(shortest.Second, yVal, graphLookup, revLookup)
 			continue
 		}
 
@@ -121,26 +90,7 @@ func part1(input []string, iterations int) int {
 
 func part2(input []string) int {
 	numJunctions := len(input)
-	points := make([]point, 0)
-
-	for _, line := range input {
-		coords := strings.Split(line, ",")
-		x, _ := strconv.Atoi(coords[0])
-		y, _ := strconv.Atoi(coords[1])
-		z, _ := strconv.Atoi(coords[2])
-		points = append(points, point{x, y, z})
-	}
-
-	distances := make([]utils.Triple[int, int, int], 0)
-	for i := 0; i < len(points)-1; i++ {
-		for j := i + 1; j < len(points); j++ {
-			distances = append(distances, utils.Triple[int, int, int]{First: sqrDistance(points[i], points[j]), Second: i, Third: j})
-		}
-	}
-
-	slices.SortFunc(distances, func(a, b utils.Triple[int, int, int]) int {
-		return a.First - b.First
-	})
+	points, distances := calculatePointsAndDistances(input)
 
 	// map of point index to graph number
 	graphLookup := make(map[int]int)
@@ -159,20 +109,12 @@ func part2(input []string) int {
 		// if both already exist in graphs
 		if xOk && yOk {
 			if xVal == yVal {
-				// already part of same graph
+				// already part of same graph, do nothing
 				continue
 			}
 
-			// merge second graph into first
-			secondNodes := revLookup[yVal]
-			existing := revLookup[xVal]
-			for _, v := range secondNodes {
-				graphLookup[v] = xVal
-				existing = append(existing, v)
-			}
-			revLookup[xVal] = existing
-			delete(revLookup, yVal)
-
+			// merge groups
+			mergeCircuits(xVal, yVal, graphLookup, revLookup)
 			if allJunctionsConnected(revLookup, numJunctions) {
 				x1 := points[shortest.Second].First
 				x2 := points[shortest.Third].First
@@ -184,11 +126,7 @@ func part2(input []string) int {
 
 		// if only one already exists in a graph, add other junction box
 		if xOk {
-			graphLookup[shortest.Third] = xVal
-			existing := revLookup[xVal]
-			existing = append(existing, shortest.Third)
-			revLookup[xVal] = existing
-
+			addBoxToCircuit(shortest.Third, xVal, graphLookup, revLookup)
 			if allJunctionsConnected(revLookup, numJunctions) {
 				x1 := points[shortest.Second].First
 				x2 := points[shortest.Third].First
@@ -199,11 +137,7 @@ func part2(input []string) int {
 		}
 
 		if yOk {
-			graphLookup[shortest.Second] = yVal
-			existing := revLookup[yVal]
-			existing = append(existing, shortest.Second)
-			revLookup[yVal] = existing
-
+			addBoxToCircuit(shortest.Second, yVal, graphLookup, revLookup)
 			if allJunctionsConnected(revLookup, numJunctions) {
 				x1 := points[shortest.Second].First
 				x2 := points[shortest.Third].First
@@ -221,11 +155,54 @@ func part2(input []string) int {
 	}
 }
 
+func calculatePointsAndDistances(input []string) ([]point, []distancePoints) {
+	points := make([]point, 0)
+
+	for _, line := range input {
+		coords := strings.Split(line, ",")
+		x, _ := strconv.Atoi(coords[0])
+		y, _ := strconv.Atoi(coords[1])
+		z, _ := strconv.Atoi(coords[2])
+		points = append(points, point{x, y, z})
+	}
+
+	distances := make([]distancePoints, 0)
+	for i := 0; i < len(points)-1; i++ {
+		for j := i + 1; j < len(points); j++ {
+			distances = append(distances, distancePoints{sqrDistance(points[i], points[j]), i, j})
+		}
+	}
+
+	slices.SortFunc(distances, func(a, b distancePoints) int {
+		return a.First - b.First
+	})
+
+	return points, distances
+}
+
 func sqrDistance(p1, p2 point) int {
 	xDiff := p2.First - p1.First
 	yDiff := p2.Second - p1.Second
 	zDiff := p2.Third - p1.Third
 	return xDiff*xDiff + yDiff*yDiff + zDiff*zDiff
+}
+
+func mergeCircuits(leftGroupId, rightGroupId int, graphLookup map[int]int, revLookup map[int][]int) {
+	nodesToMerge := revLookup[rightGroupId]
+	existing := revLookup[leftGroupId]
+	for _, v := range nodesToMerge {
+		graphLookup[v] = leftGroupId
+		existing = append(existing, v)
+	}
+	revLookup[leftGroupId] = existing
+	delete(revLookup, rightGroupId)
+}
+
+func addBoxToCircuit(boxIdx, groupId int, graphLookup map[int]int, revLookup map[int][]int) {
+	graphLookup[boxIdx] = groupId
+	existing := revLookup[groupId]
+	existing = append(existing, boxIdx)
+	revLookup[groupId] = existing
 }
 
 func allJunctionsConnected(revLookup map[int][]int, numJunctions int) bool {

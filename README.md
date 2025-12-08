@@ -52,15 +52,15 @@ Part 2: ⭐ (160.35µs)
 
 
 ### Day 7
-Part 1: ⭐ (1.320797ms)
+Part 1: ⭐ (1.321ms)
 
 Part 2: ⭐ (626.561µs)
 
 
 ### Day 8
-Part 1:
+Part 1: ⭐ (73.578531ms)
 
-Part 2:
+Part 2: ⭐ (69.066ms)
 
 
 ### Day 9
