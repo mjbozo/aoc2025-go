@@ -7,12 +7,12 @@ import (
 )
 
 func TestPart1(t *testing.T) {
-	input, err := utils.ReadInput("example.txt", 9)
+	input, err := utils.ReadInputLines("example.txt", 9)
 	if err != nil {
 		log.Fatalln(utils.Red(err.Error()))
 	}
 
-	expected := 0
+	expected := 50
 	result := part1(input)
 	if result != expected {
 		t.Fatalf(utils.Red("Expected %d, got %d\n"), expected, result)
@@ -20,15 +20,14 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	input, err := utils.ReadInput("example.txt", 9)
+	input, err := utils.ReadInputLines("example.txt", 9)
 	if err != nil {
 		log.Fatalln(utils.Red(err.Error()))
 	}
 
-	expected := 0
+	expected := 24
 	result := part2(input)
 	if result != expected {
 		t.Fatalf(utils.Red("Expected %d, got %d\n"), expected, result)
 	}
 }
-
