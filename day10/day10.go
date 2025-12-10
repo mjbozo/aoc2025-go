@@ -35,89 +35,146 @@ func part1(input []string) int {
 	return sum
 }
 
+type state struct {
+	joltages   []int
+	presses    []int
+	numPresses int
+}
+
+func (s *state) key() string {
+	return fmt.Sprintf("%v", s.joltages)
+}
+
+func newState(joltagesLength int, buttonsLength int) state {
+	return state{
+		joltages:   make([]int, joltagesLength),
+		presses:    make([]int, buttonsLength),
+		numPresses: 0,
+	}
+}
+
 func part2(input []string) int {
 	totalPresses := 0
 	totalMachines := len(input)
-	for q, machine := range input {
-		machine = strings.ReplaceAll(machine, ") (", ")(")
-		parts := strings.Split(machine, " ")
-		buttons := strings.ReplaceAll(parts[1], ")(", ") (")
-		buttonGroups := strings.Split(buttons, " ")
-		switches := make([][]int, 0)
-		for _, button := range buttonGroups {
-			nums := strings.Split(strings.TrimSuffix(strings.TrimPrefix(button, "("), ")"), ",")
-			group := make([]int, 0)
-			for _, n := range nums {
-				x, _ := strconv.Atoi(n)
-				group = append(group, x)
+	fmt.Println(totalMachines)
+	for m, machine := range input {
+		fmt.Printf("BEGINNING MACHINE %d / %d\n", m+1, totalMachines)
+		switches, joltages := parseInput(machine)
+
+		// FIXME: NEW APPROACH
+		// Use Djikstra or similar to pathfind to a solution in X-dimensional space
+		// The joltages represent a point in X-dimensional space, and the buttons
+		// are vector paths to reach that point
+
+		best := make(map[string]int)
+		queue := utils.BinaryHeap(func(a, b state) int {
+			aScore := 0
+			bScore := 0
+
+			for i := range joltages {
+				aScore += joltages[i] - a.joltages[i]
+				bScore += joltages[i] - b.joltages[i]
 			}
-			switches = append(switches, group)
-		}
 
-		joltagesStr := strings.Split(strings.TrimSuffix(strings.TrimPrefix(parts[2], "{"), "}"), ",")
+			return bScore - aScore
+		})
 
-		joltages := make([]int, 0)
-		upperBound := 0
-		for _, j := range joltagesStr {
-			x, _ := strconv.Atoi(j)
-			joltages = append(joltages, x)
-			upperBound += x
-		}
+		initialState := newState(len(joltages), len(switches))
+		queue.Insert(initialState)
+		best[initialState.key()] = 0
+		goalState := fmt.Sprintf("%v", joltages)
 
-		fmt.Printf("BEGINNING SEARCH: Machine %d / %d\n", q+1, totalMachines)
-		// fmt.Printf("Joltages: %v, Switches: %v\n", joltages, switches)
+		for queue.Size() > 0 {
+			current, _ := queue.Pop()
+			// fmt.Printf("Current node: %v, Queue size: %d\n", current, queue.Size())
 
-		for i := 0; i <= upperBound; i++ {
-			fmt.Printf("Testing with %d presses (upper bound %d)\n", i, upperBound)
-			presses := make([]int, len(switches))
-			if canGenerateJoltages(i, presses, switches, joltages) {
-				totalPresses += i
-				fmt.Printf("Machine %d requires %d presses", q+1, i)
+			if v, ok := best[current.key()]; ok && v < current.numPresses {
+				// already seen this state
+				continue
+			}
+
+			if joltagesEqual(current.joltages, joltages) {
+				fmt.Printf("FOUND. Remaining: %d\n", queue.Size())
+				// fmt.Println(best[current.key()])
+				// time.Sleep(5 * time.Second)
 				break
 			}
+
+			// look for 'neighbours' in each vector direction of each button
+			for i, vector := range switches {
+				next := newState(len(joltages), len(switches))
+				copy(next.joltages, current.joltages)
+				copy(next.presses, current.presses)
+				next.numPresses = current.numPresses
+
+				next.presses[i]++
+				next.numPresses++
+				for _, axis := range vector {
+					next.joltages[axis]++
+				}
+
+				nextValid := true
+				for j := range joltages {
+					if next.joltages[j] > joltages[j] {
+						nextValid = false
+						break
+					}
+				}
+
+				if v, ok := best[next.key()]; ok {
+					// already seen this state
+					if v < next.numPresses {
+						nextValid = false
+						break
+					}
+				}
+
+				if nextValid {
+					best[next.key()] = next.numPresses
+					queue.Insert(next)
+				}
+			}
 		}
 
-		// fmt.Println(switches, joltages)
-		// totalPresses := 0
-		// for !allJoltagesMet(joltages) {
-		// 	slices.SortFunc(switches, func(a, b []int) int {
-		// 		aScore := 0
-		// 		bScore := 0
-		//
-		// 		for _, x := range a {
-		// 			aScore += joltages[x]
-		// 		}
-		// 		for _, x := range b {
-		// 			bScore += joltages[x]
-		// 		}
-		//
-		// 		if aScore == bScore {
-		// 			return len(a) - len(b)
-		// 		}
-		//
-		// 		return bScore - aScore
-		// 	})
-		//
-		// 	best := switches[0]
-		// 	presses := math.MaxInt
-		// 	for _, x := range best {
-		// 		presses = min(joltages[x], presses)
-		// 	}
-		//
-		// 	// fmt.Printf("Sorted: %v\n", switches)
-		// 	for _, x := range switches[0] {
-		// 		joltages[x] -= presses
-		// 	}
-		//
-		// 	totalPresses += presses
-		//
-		// 	// fmt.Println(joltages, totalPresses)
-		// 	// time.Sleep(2 * time.Second)
-		// }
-		// totalSum += totalPresses
+		totalPresses += best[goalState]
 	}
 
 	return totalPresses
+}
+
+func parseInput(machine string) ([][]int, []int) {
+	machine = strings.ReplaceAll(machine, ") (", ")(")
+	parts := strings.Split(machine, " ")
+	buttons := strings.ReplaceAll(parts[1], ")(", ") (")
+	buttonGroups := strings.Split(buttons, " ")
+	switches := make([][]int, 0)
+	for _, button := range buttonGroups {
+		nums := strings.Split(strings.TrimSuffix(strings.TrimPrefix(button, "("), ")"), ",")
+		group := make([]int, 0)
+		for _, n := range nums {
+			x, _ := strconv.Atoi(n)
+			group = append(group, x)
+		}
+		switches = append(switches, group)
+	}
+
+	joltagesStr := strings.Split(strings.TrimSuffix(strings.TrimPrefix(parts[2], "{"), "}"), ",")
+
+	joltages := make([]int, 0)
+	for _, j := range joltagesStr {
+		x, _ := strconv.Atoi(j)
+		joltages = append(joltages, x)
+	}
+
+	return switches, joltages
+}
+
+func sum(a []int) int {
+	s := 0
+	for _, x := range a {
+		s += x
+	}
+	return s
 }
 
 func canGenerateJoltages(depth int, presses []int, switches [][]int, joltages []int) bool {

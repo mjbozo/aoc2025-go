@@ -5,7 +5,7 @@ import (
 )
 
 // Node data structure for binary heap
-type heapNode[T comparable] struct {
+type heapNode[T any] struct {
 	value  T
 	left   *heapNode[T]
 	right  *heapNode[T]
@@ -39,13 +39,13 @@ func (e *HeapError) Error() string {
 // Binary heap data structure
 //
 // Can be used as either min-heap or max-heap depending in the user-defined comparator function
-type binaryHeap[T comparable] struct {
+type binaryHeap[T any] struct {
 	Comparator func(a, b T) int
 	root       *heapNode[T]
 	size       int
 }
 
-func BinaryHeap[T comparable](comparator func(a, b T) int) *binaryHeap[T] {
+func BinaryHeap[T any](comparator func(a, b T) int) *binaryHeap[T] {
 	return &binaryHeap[T]{
 		Comparator: comparator,
 		root:       nil,
@@ -53,7 +53,7 @@ func BinaryHeap[T comparable](comparator func(a, b T) int) *binaryHeap[T] {
 	}
 }
 
-func BinaryHeapFrom[T comparable](comparator func(a, b T) int, vals []T) *binaryHeap[T] {
+func BinaryHeapFrom[T any](comparator func(a, b T) int, vals []T) *binaryHeap[T] {
 	heap := &binaryHeap[T]{
 		Comparator: comparator,
 		root:       nil,
@@ -202,7 +202,7 @@ func (h *binaryHeap[T]) Pop() (T, error) {
 
 	// root is the only value in the heap
 	if last == h.root {
-		fmt.Println(h, maxValue)
+		// fmt.Println(h, maxValue)
 		h.root = nil
 		return maxValue, nil
 	}
