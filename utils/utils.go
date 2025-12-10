@@ -234,3 +234,8 @@ func Green(input string) string {
 func Red(input string) string {
 	return fmt.Sprintf("\033[31m%s\033[39m", input)
 }
+
+// Blue text colour
+func Blue(input string) string {
+	return fmt.Sprintf("\033[34m%s\033[39m", input)
+}
