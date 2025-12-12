@@ -175,6 +175,15 @@ func Manhattan[T, U Number](p1, p2 Pair[T, U]) int {
 	return int(math.Abs(float64(p2.Second-p1.Second)) + math.Abs(float64(p2.First-p1.First)))
 }
 
+// Calculates factorial of an integer
+func Factorial(n int) int {
+	factorial := 1
+	for i := range n {
+		factorial *= i + 1
+	}
+	return factorial
+}
+
 // Calculate lowest common multiple of two integers
 func FindLCM(x, y int) int {
 	largest := max(y, x)
@@ -238,4 +247,50 @@ func Red(input string) string {
 // Blue text colour
 func Blue(input string) string {
 	return fmt.Sprintf("\033[34m%s\033[39m", input)
+}
+
+// Calculate determinant of matrix
+func MatrixDeterminant(matrix [][]int) int {
+	size := len(matrix)
+	for _, row := range matrix {
+		if len(row) != size {
+			panic("not a square matrix")
+		}
+	}
+
+	if size == 1 {
+		return matrix[0][0]
+	}
+
+	if size == 2 {
+		return matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0]
+	}
+
+	// at least 3x3
+	subanswers := make([]int, 0)
+	for c := range size {
+		submatrix := make([][]int, size-1)
+		for y := 1; y < size; y++ {
+			row := make([]int, 0)
+			for x := range size {
+				if x != c {
+					row = append(row, matrix[y][x])
+				}
+			}
+			submatrix[y-1] = row
+		}
+
+		subanswers = append(subanswers, MatrixDeterminant(submatrix))
+	}
+
+	determinant := 0
+	for i, x := range subanswers {
+		if i%2 == 0 {
+			determinant += matrix[0][i] * x
+		} else {
+			determinant -= matrix[0][i] * x
+		}
+	}
+
+	return determinant
 }

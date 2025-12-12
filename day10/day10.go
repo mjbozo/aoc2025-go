@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -36,116 +35,259 @@ func part1(input []string) int {
 	return sum
 }
 
-type state struct {
-	joltages   []int
-	presses    []int
-	numPresses int
-}
-
-func (s *state) key() string {
-	return fmt.Sprintf("%v", s.joltages)
-}
-
-func newState(joltagesLength int, buttonsLength int) state {
-	return state{
-		joltages:   make([]int, joltagesLength),
-		presses:    make([]int, buttonsLength),
-		numPresses: 0,
-	}
-}
+const EPS = 1e-9
+const INF = math.MaxFloat64
 
 func part2(input []string) int {
 	totalPresses := 0
-	totalMachines := len(input)
-	fmt.Println(totalMachines)
-	for m := 1; m < len(input); m++ {
-		machine := input[m]
-		fmt.Printf("BEGINNING MACHINE %d / %d\n", m+1, totalMachines)
+	for _, machine := range input {
 		switches, joltages := parseInput(machine)
 
-		// FIXME: NEW APPROACH
-		// Use A* or similar to pathfind to a solution in X-dimensional space
-		// The joltages represent a point in X-dimensional space, and the buttons
-		// are vector paths to reach that point
-
-		best := make(map[string]int)
-		queue := utils.BinaryHeap(func(a, b state) int {
-			aScore := 0
-			bScore := 0
-
-			for i := range joltages {
-				aScore += joltages[i] - a.joltages[i]
-				bScore += joltages[i] - b.joltages[i]
-			}
-
-			return bScore - aScore
-		})
-
-		initialState := newState(len(joltages), len(switches))
-		queue.Insert(initialState)
-		best[initialState.key()] = 0
-		goalState := fmt.Sprintf("%v", joltages)
-
-		for queue.Size() > 0 {
-			current, _ := queue.Pop()
-			// fmt.Printf("Current node: %v, Queue size: %d, Best size: %d, Current presses: %d\n", current, queue.Size(), len(best), current.numPresses)
-
-			if joltagesEqual(current.joltages, joltages) {
-				fmt.Printf("FOUND. Remaining: %d\n", queue.Size())
-				fmt.Println(best[current.key()])
-				f, err := os.OpenFile("./day10/answers.txt", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0660)
-				if err != nil {
-					panic(err.Error())
-				}
-				fmt.Fprintf(f, "%d. %d", m+1, best[current.key()])
-				f.Close()
-				time.Sleep(5 * time.Second)
-				break
-			}
-
-			if v, ok := best[current.key()]; ok && v < current.numPresses {
-				// already seen this state
-				continue
-			}
-
-			// look for 'neighbours' in each vector direction of each button
-			for i, vector := range switches {
-				nextValid := true
-				for _, axis := range vector {
-					if current.joltages[axis]+1 > joltages[axis] {
-						nextValid = false
-						break
-					}
-				}
-
-				if !nextValid {
-					continue
-				}
-
-				next := newState(len(joltages), len(switches))
-				copy(next.joltages, current.joltages)
-				copy(next.presses, current.presses)
-				next.numPresses = current.numPresses + 1
-				next.presses[i]++
-				for _, axis := range vector {
-					next.joltages[axis]++
-				}
-
-				if v, ok := best[next.key()]; ok && v <= next.numPresses {
-					// already seen this state
-					continue
-				}
-
-				best[next.key()] = next.numPresses
-				queue.Insert(next)
-			}
+		A := buildMatrix(switches, joltages)
+		joltagesF := make([]float64, len(joltages))
+		for i := range joltages {
+			joltagesF[i] = float64(joltages[i])
 		}
 
-		fmt.Println(best[goalState])
-		totalPresses += best[goalState]
+		presses := solve(A)
+		totalPresses += presses
 	}
 
 	return totalPresses
+}
+
+type SimplexSolver struct {
+	D [][]float64
+	B []int
+	N []int
+	m int
+	n int
+}
+
+func (s *SimplexSolver) pivot(r, pivotCol int) {
+	k := 1.0 / s.D[r][pivotCol]
+
+	for i := 0; i < s.m+2; i++ {
+		if i == r {
+			continue
+		}
+		for j := 0; j < s.n+2; j++ {
+			if j != pivotCol {
+				s.D[i][j] -= s.D[r][j] * s.D[i][pivotCol] * k
+			}
+		}
+	}
+
+	for i := 0; i < s.n+2; i++ {
+		s.D[r][i] *= k
+	}
+
+	for i := 0; i < s.m+2; i++ {
+		s.D[i][pivotCol] *= -k
+	}
+
+	s.D[r][pivotCol] = k
+	s.B[r], s.N[pivotCol] = s.N[pivotCol], s.B[r]
+}
+
+func (s *SimplexSolver) find(p int) bool {
+	for {
+		minCol := -1
+		for i := 0; i < s.n+1; i++ {
+			if p == 0 && s.N[i] == -1 {
+				continue
+			}
+			if minCol == -1 {
+				minCol = i
+			} else {
+				if s.D[s.m+p][i] < s.D[s.m+p][minCol]-EPS ||
+					(math.Abs(s.D[s.m+p][i]-s.D[s.m+p][minCol]) < EPS && s.N[i] < s.N[minCol]) {
+					minCol = i
+				}
+			}
+		}
+
+		if s.D[s.m+p][minCol] > -EPS {
+			return true
+		}
+
+		pivotCol := minCol
+
+		minRow := -1
+		for i := 0; i < s.m; i++ {
+			if s.D[i][pivotCol] > EPS {
+				if minRow == -1 {
+					minRow = i
+				} else {
+					ratio1 := s.D[i][s.n+1] / s.D[i][pivotCol]
+					ratio2 := s.D[minRow][s.n+1] / s.D[minRow][pivotCol]
+
+					if ratio1 < ratio2-EPS ||
+						(math.Abs(ratio1-ratio2) < EPS && s.B[i] < s.B[minRow]) {
+						minRow = i
+					}
+				}
+			}
+		}
+
+		if minRow == -1 {
+			return false
+		}
+
+		s.pivot(minRow, pivotCol)
+	}
+}
+
+func simplex(A [][]float64, C []float64) (float64, []float64) {
+	m := len(A)
+	n := len(A[0]) - 1
+
+	N := make([]int, n+1)
+	for i := range n {
+		N[i] = i
+	}
+	N[n] = -1
+
+	B := make([]int, m)
+	for i := range m {
+		B[i] = n + i
+	}
+
+	// WHY: Build tableau with proper structure
+	// Columns: [original vars (n)] [artificial var (1)] [RHS (1)]
+	D := make([][]float64, m+2)
+	for i := range m {
+		D[i] = make([]float64, n+2)
+		// Copy constraint coefficients
+		for j := range n {
+			D[i][j] = A[i][j]
+		}
+		// Artificial variable coefficient = -1 for all constraints
+		D[i][n] = -1
+		// RHS comes from last column of A
+		D[i][n+1] = A[i][n]
+	}
+
+	// Phase II objective row
+	D[m] = make([]float64, n+2)
+	copy(D[m], C)
+
+	// Phase I objective row
+	D[m+1] = make([]float64, n+2)
+	D[m+1][n] = 1 // Minimize artificial variable
+
+	solver := &SimplexSolver{
+		D: D,
+		B: B,
+		N: N,
+		m: m,
+		n: n,
+	}
+
+	// Find most negative RHS
+	r := 0
+	for i := 1; i < m; i++ {
+		if D[i][n+1] < D[r][n+1] {
+			r = i
+		}
+	}
+
+	// Phase I
+	if D[r][n+1] < -EPS {
+		solver.pivot(r, n)
+		if !solver.find(1) {
+			return -INF, nil
+		}
+		if D[m+1][n+1] < -EPS {
+			return -INF, nil
+		}
+	}
+
+	// Remove artificial variables from basis
+	for i := 0; i < m; i++ {
+		if solver.B[i] == -1 {
+			minCol := 0
+			for j := 1; j < n; j++ {
+				if D[i][j] < D[i][minCol]-EPS ||
+					(math.Abs(D[i][j]-D[i][minCol]) < EPS && solver.N[j] < solver.N[minCol]) {
+					minCol = j
+				}
+			}
+			solver.pivot(i, minCol)
+		}
+	}
+
+	// Phase II
+	if solver.find(0) {
+		x := make([]float64, n)
+		for i := range m {
+			if solver.B[i] >= 0 && solver.B[i] < n {
+				x[solver.B[i]] = D[i][n+1]
+			}
+		}
+
+		objVal := 0.0
+		for i := range n {
+			objVal += C[i] * x[i]
+		}
+
+		return objVal, x
+	}
+
+	return -INF, nil
+}
+
+func branchAndBound(A [][]float64, n int, bval *float64) {
+	C := make([]float64, n)
+	for i := range n {
+		C[i] = 1.0
+	}
+
+	val, x := simplex(A, C)
+
+	if val+EPS >= *bval || val == -INF {
+		return
+	}
+
+	k := -1
+	v := 0
+	for i := range x {
+		if math.Abs(x[i]-math.Round(x[i])) > EPS {
+			k = i
+			v = int(x[i])
+			break
+		}
+	}
+
+	if k == -1 {
+		if val+EPS < *bval {
+			*bval = val
+		}
+		return
+	}
+
+	s1 := make([]float64, n+1)
+	s1[k] = 1
+	s1[n] = float64(v)
+	newA1 := make([][]float64, len(A)+1)
+	copy(newA1, A)
+	newA1[len(A)] = s1
+	branchAndBound(newA1, n, bval)
+
+	s2 := make([]float64, n+1)
+	s2[k] = -1
+	s2[n] = float64(-(v + 1))
+	newA2 := make([][]float64, len(A)+1)
+	copy(newA2, A)
+	newA2[len(A)] = s2
+	branchAndBound(newA2, n, bval)
+}
+
+func solve(A [][]float64) int {
+	n := len(A[0]) - 1
+	bval := INF
+	branchAndBound(A, n, &bval)
+	return int(math.Round(bval))
 }
 
 func parseInput(machine string) ([][]int, []int) {
@@ -175,54 +317,52 @@ func parseInput(machine string) ([][]int, []int) {
 	return switches, joltages
 }
 
-func sum(a []int) int {
-	s := 0
-	for _, x := range a {
-		s += x
+func buildMatrix(switches [][]int, joltages []int) [][]float64 {
+	matrix := make([][]float64, 0)
+	for range len(joltages) {
+		row := make([]float64, len(switches)+1)
+		matrix = append(matrix, row)
 	}
-	return s
-}
 
-func canGenerateJoltages(depth int, presses []int, switches [][]int, joltages []int) bool {
-	// fmt.Printf("Generated button distribution: %v\n", presses)
-	if depth == 0 {
-		current := make([]int, len(joltages))
-		for i, press := range presses {
-			for _, j := range switches[i] {
-				current[j] += press
+	for j, s := range switches {
+		for _, i := range s {
+			matrix[i][j] = 1
+		}
+	}
+
+	for j := range joltages {
+		matrix[j][len(matrix[0])-1] = float64(joltages[j])
+	}
+
+	n := len(matrix)
+	for i := range n {
+		row := make([]float64, 0)
+
+		for j := range matrix[i] {
+			if matrix[i][j] != 0 {
+				row = append(row, -matrix[i][j])
+			} else {
+				row = append(row, 0)
 			}
 		}
 
-		return joltagesEqual(current, joltages)
+		matrix = append(matrix, row)
 	}
 
-	for i := range switches {
-		presses[i]++
-		if canGenerateJoltages(depth-1, presses, switches, joltages) {
-			return true
+	m := len(matrix[0])
+	for i := m - 2; i >= 0; i-- {
+		row := make([]float64, 0)
+		for j := range m {
+			if i == j {
+				row = append(row, -1)
+			} else {
+				row = append(row, 0)
+			}
 		}
-		presses[i]--
+		matrix = append(matrix, row)
 	}
 
-	return false
-}
-
-func joltagesEqual(a, b []int) bool {
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func allJoltagesMet(joltages []int) bool {
-	for _, x := range joltages {
-		if x != 0 {
-			return false
-		}
-	}
-	return true
+	return matrix
 }
 
 func calculateButtonPresses(machine string) int {
