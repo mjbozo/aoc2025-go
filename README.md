@@ -70,9 +70,9 @@ Part 2: ⭐ (11.295ms)
 
 
 ### Day 10
-Part 1:
+Part 1: ⭐ (35.179ms)
 
-Part 2:
+Part 2: ⭐ (14.119ms)
 
 
 ### Day 11
