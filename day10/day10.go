@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -57,12 +58,13 @@ func part2(input []string) int {
 	totalPresses := 0
 	totalMachines := len(input)
 	fmt.Println(totalMachines)
-	for m, machine := range input {
+	for m := 1; m < len(input); m++ {
+		machine := input[m]
 		fmt.Printf("BEGINNING MACHINE %d / %d\n", m+1, totalMachines)
 		switches, joltages := parseInput(machine)
 
 		// FIXME: NEW APPROACH
-		// Use Djikstra or similar to pathfind to a solution in X-dimensional space
+		// Use A* or similar to pathfind to a solution in X-dimensional space
 		// The joltages represent a point in X-dimensional space, and the buttons
 		// are vector paths to reach that point
 
@@ -86,56 +88,60 @@ func part2(input []string) int {
 
 		for queue.Size() > 0 {
 			current, _ := queue.Pop()
-			// fmt.Printf("Current node: %v, Queue size: %d\n", current, queue.Size())
+			// fmt.Printf("Current node: %v, Queue size: %d, Best size: %d, Current presses: %d\n", current, queue.Size(), len(best), current.numPresses)
+
+			if joltagesEqual(current.joltages, joltages) {
+				fmt.Printf("FOUND. Remaining: %d\n", queue.Size())
+				fmt.Println(best[current.key()])
+				f, err := os.OpenFile("./day10/answers.txt", os.O_APPEND|os.O_RDWR|os.O_CREATE, 0660)
+				if err != nil {
+					panic(err.Error())
+				}
+				fmt.Fprintf(f, "%d. %d", m+1, best[current.key()])
+				f.Close()
+				time.Sleep(5 * time.Second)
+				break
+			}
 
 			if v, ok := best[current.key()]; ok && v < current.numPresses {
 				// already seen this state
 				continue
 			}
 
-			if joltagesEqual(current.joltages, joltages) {
-				fmt.Printf("FOUND. Remaining: %d\n", queue.Size())
-				// fmt.Println(best[current.key()])
-				// time.Sleep(5 * time.Second)
-				break
-			}
-
 			// look for 'neighbours' in each vector direction of each button
 			for i, vector := range switches {
+				nextValid := true
+				for _, axis := range vector {
+					if current.joltages[axis]+1 > joltages[axis] {
+						nextValid = false
+						break
+					}
+				}
+
+				if !nextValid {
+					continue
+				}
+
 				next := newState(len(joltages), len(switches))
 				copy(next.joltages, current.joltages)
 				copy(next.presses, current.presses)
-				next.numPresses = current.numPresses
-
+				next.numPresses = current.numPresses + 1
 				next.presses[i]++
-				next.numPresses++
 				for _, axis := range vector {
 					next.joltages[axis]++
 				}
 
-				nextValid := true
-				for j := range joltages {
-					if next.joltages[j] > joltages[j] {
-						nextValid = false
-						break
-					}
-				}
-
-				if v, ok := best[next.key()]; ok {
+				if v, ok := best[next.key()]; ok && v <= next.numPresses {
 					// already seen this state
-					if v < next.numPresses {
-						nextValid = false
-						break
-					}
+					continue
 				}
 
-				if nextValid {
-					best[next.key()] = next.numPresses
-					queue.Insert(next)
-				}
+				best[next.key()] = next.numPresses
+				queue.Insert(next)
 			}
 		}
 
+		fmt.Println(best[goalState])
 		totalPresses += best[goalState]
 	}
 
