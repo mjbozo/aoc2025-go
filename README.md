@@ -82,6 +82,4 @@ Part 2: ⭐ (1.299ms)
 
 
 ### Day 12
-Part 1:
-
-Part 2:
+Part 1: ⭐ (2.471ms)
